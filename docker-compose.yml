@@ -1,0 +1,250 @@
+# ── ORACLE VM — COMPLETE STACK ─────────────────────────────────────────────────
+# Runs: Go backend, React frontend (nginx), Mosquitto, tydom2mqtt,
+#       Prowlarr, Radarr, Sonarr, Lidarr, Transmission, Grafana, Syncthing.
+#
+# Jellyfin is intentionally NOT here — it needs local storage.
+# Run it on your laptop/N100 (see docker-compose.local.yml).
+#
+# Prerequisites on the Oracle VM:
+#   - Open ports in Oracle Security List:
+#       80/443 (frontend), 8080 (API), 1883 (MQTT internal only),
+#       22000/tcp+udp (Syncthing), 51413/tcp+udp (torrents)
+#   - docker, docker compose installed
+#   - cp .env.example .env and fill in your values
+
+networks:
+  internal:
+    driver: bridge
+
+volumes:
+  sqlite_data:
+  mosquitto_data:
+  transmission_config:
+  transmission_downloads:
+  prowlarr_config:
+  radarr_config:
+  sonarr_config:
+  lidarr_config:
+  grafana_data:
+  syncthing_config:
+
+services:
+
+  # ── Go API gateway ────────────────────────────────────────────────────────────
+  gateway:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: homeqol-gateway
+    restart: unless-stopped
+    networks: [internal]
+    ports:
+      - "8080:8080"
+    env_file: .env
+    environment:
+      DB_PATH:         /app/data/personal-os.db
+      MQTT_BROKER_URL: tcp://mosquitto:1883
+      JELLYFIN_URL:    ""   # no Jellyfin on this machine
+    volumes:
+      - sqlite_data:/app/data
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ── React frontend ────────────────────────────────────────────────────────────
+  # nginx serves the built React app AND reverse-proxies all other services
+  # so everything is accessible from one port (80 / 443).
+  # In dev: run `npm run dev` locally with VITE_API_URL=http://oracle-ip:8080/api/v1
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: homeqol-frontend
+    restart: unless-stopped
+    networks: [internal]
+    ports:
+      - "80:80"
+    depends_on:
+      gateway:
+        condition: service_healthy
+    profiles: [production]
+
+  # ── MQTT broker ───────────────────────────────────────────────────────────────
+  # Internal only — not exposed to the internet.
+  # tydom2mqtt publishes here, Go gateway subscribes.
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: homeqol-mosquitto
+    restart: unless-stopped
+    networks: [internal]
+    volumes:
+      - ./config/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto_data:/mosquitto/data
+    healthcheck:
+      test: ["CMD", "mosquitto_sub", "-t", "$$SYS/#", "-C", "1", "-i", "hc", "-W", "3"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  # ── tydom2mqtt ────────────────────────────────────────────────────────────────
+  # Connects to your Tydom box at home over the internet via mediation.tydom.com
+  # (Delta Dore's relay server — this is how it works even from the Oracle VM).
+  # Uses DELTADORE_LOGIN + DELTADORE_PASSWORD to authenticate,
+  # which retrieves the actual box password from Delta Dore's cloud.
+  tydom2mqtt:
+    image: fmartinou/tydom2mqtt:latest
+    container_name: homeqol-tydom2mqtt
+    restart: unless-stopped
+    networks: [internal]
+    environment:
+      TYDOM_MAC:           ${TYDOM_MAC}
+      TYDOM_IP:            mediation.tydom.com   # remote mode from Oracle
+      DELTADORE_LOGIN:     ${DELTADORE_LOGIN}
+      DELTADORE_PASSWORD:  ${DELTADORE_PASSWORD}
+      MQTT_HOST:           mosquitto
+      MQTT_PORT:           1883
+      LOG_LEVEL:           INFO
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+
+  # ── Transmission ──────────────────────────────────────────────────────────────
+  # Torrent client — downloads files to transmission_downloads volume.
+  # Syncthing then sends completed files to your laptop/N100.
+  transmission:
+    image: linuxserver/transmission:latest
+    container_name: homeqol-transmission
+    restart: unless-stopped
+    networks: [internal]
+    ports:
+      - "9091:9091"
+      - "51413:51413"
+      - "51413:51413/udp"
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ:   ${TZ:-Europe/Paris}
+      USER: ${TRANSMISSION_USER:-admin}
+      PASS: ${TRANSMISSION_PASSWORD:-changeme}
+    volumes:
+      - transmission_config:/config
+      - transmission_downloads:/downloads
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:9091/transmission/web/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  # ── Prowlarr ──────────────────────────────────────────────────────────────────
+  prowlarr:
+    image: linuxserver/prowlarr:latest
+    container_name: homeqol-prowlarr
+    restart: unless-stopped
+    networks: [internal]
+    ports:
+      - "9696:9696"
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ:   ${TZ:-Europe/Paris}
+    volumes:
+      - prowlarr_config:/config
+
+  # ── Radarr (movies) ───────────────────────────────────────────────────────────
+  radarr:
+    image: linuxserver/radarr:latest
+    container_name: homeqol-radarr
+    restart: unless-stopped
+    networks: [internal]
+    ports:
+      - "7878:7878"
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ:   ${TZ:-Europe/Paris}
+    volumes:
+      - radarr_config:/config
+      - transmission_downloads:/downloads
+
+  # ── Sonarr (TV shows) ─────────────────────────────────────────────────────────
+  sonarr:
+    image: linuxserver/sonarr:latest
+    container_name: homeqol-sonarr
+    restart: unless-stopped
+    networks: [internal]
+    ports:
+      - "8989:8989"
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ:   ${TZ:-Europe/Paris}
+    volumes:
+      - sonarr_config:/config
+      - transmission_downloads:/downloads
+
+  # ── Lidarr (music) ────────────────────────────────────────────────────────────
+  lidarr:
+    image: linuxserver/lidarr:latest
+    container_name: homeqol-lidarr
+    restart: unless-stopped
+    networks: [internal]
+    ports:
+      - "8686:8686"
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ:   ${TZ:-Europe/Paris}
+    volumes:
+      - lidarr_config:/config
+      - transmission_downloads:/downloads
+
+  # ── Grafana ───────────────────────────────────────────────────────────────────
+  # Deep-dive dashboards. Plugin frser-sqlite-datasource reads SQLite directly.
+  # http://oracle-ip:3001 — login: admin / $GRAFANA_ADMIN_PASSWORD
+  grafana:
+    image: grafana/grafana:latest
+    container_name: homeqol-grafana
+    restart: unless-stopped
+    networks: [internal]
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD:    ${GRAFANA_ADMIN_PASSWORD:-changeme}
+      GF_USERS_ALLOW_SIGN_UP:        "false"
+      GF_INSTALL_PLUGINS:            frser-sqlite-datasource
+      GF_SERVER_ROOT_URL:            "%(protocol)s://%(domain)s/grafana/"
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - sqlite_data:/app/data:ro
+
+  # ── Syncthing (send) ──────────────────────────────────────────────────────────
+  # Watches /downloads and sends completed files to your laptop/N100.
+  # Set this folder as "Send Only" in the Syncthing UI so Oracle never
+  # receives data from your local machine.
+  # After files are confirmed synced, a cron job deletes them here to free space.
+  syncthing:
+    image: lscr.io/linuxserver/syncthing:latest
+    container_name: homeqol-syncthing
+    restart: unless-stopped
+    networks: [internal]
+    ports:
+      - "8384:8384"
+      - "22000:22000/tcp"
+      - "22000:22000/udp"
+      - "21027:21027/udp"
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ:   ${TZ:-Europe/Paris}
+    volumes:
+      - syncthing_config:/config
+      - transmission_downloads:/downloads   # sends from here to your local machine

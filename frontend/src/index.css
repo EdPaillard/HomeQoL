@@ -1,0 +1,24 @@
+/* Global resets — style.css owns all design tokens via @import "tailwindcss" */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+/* Remove the centred narrow-column layout from the Vite scaffold */
+#root {
+  width: 100%;
+  max-width: 100%;
+  text-align: left;
+  border: none;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}

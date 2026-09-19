@@ -1,0 +1,72 @@
+# ── LOCAL MACHINE (laptop / future N100) ──────────────────────────────────────
+# Runs: Jellyfin (serves your media library) + Syncthing (receives files).
+#
+# Everything else (backend, MQTT, *arr, Transmission) is on the Oracle VM.
+# Jellyfin reads from the media_data volume, which Syncthing populates
+# automatically as files finish downloading on Oracle.
+#
+# First-time Jellyfin setup:
+#   1. Open http://localhost:8096
+#   2. Create admin account
+#   3. Add libraries pointing to /media/movies, /media/tv, /media/music
+#   4. Dashboard → API Keys → create key → add to Oracle .env as JELLYFIN_API_KEY
+#      (your Go backend on Oracle will call Jellyfin here to serve library data)
+#
+# First-time Syncthing setup:
+#   1. Open http://localhost:8384 on this machine
+#   2. Open http://oracle-ip:8384 on Oracle
+#   3. Exchange Device IDs and pair them
+#   4. Share the downloads folder from Oracle → accept here as "Receive Only"
+#   5. Jellyfin will pick up new files within minutes of transfer completing
+
+networks:
+  local:
+    driver: bridge
+
+volumes:
+  media_data:       # Syncthing writes here, Jellyfin reads here
+  jellyfin_config:
+  jellyfin_cache:
+  syncthing_config:
+
+services:
+
+  # ── Jellyfin ──────────────────────────────────────────────────────────────────
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: homeqol-jellyfin
+    restart: unless-stopped
+    networks: [local]
+    ports:
+      - "8096:8096"
+    environment:
+      TZ: ${TZ:-Europe/Paris}
+    volumes:
+      - jellyfin_config:/config
+      - jellyfin_cache:/cache
+      - media_data:/media:ro    # read-only — Syncthing writes, Jellyfin reads
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8096/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ── Syncthing (receive) ───────────────────────────────────────────────────────
+  syncthing:
+    image: lscr.io/linuxserver/syncthing:latest
+    container_name: homeqol-syncthing-local
+    restart: unless-stopped
+    networks: [local]
+    ports:
+      - "8384:8384"
+      - "22000:22000/tcp"
+      - "22000:22000/udp"
+      - "21027:21027/udp"
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ:   ${TZ:-Europe/Paris}
+    volumes:
+      - syncthing_config:/config
+      - media_data:/media       # receives here from Oracle, Jellyfin reads it
