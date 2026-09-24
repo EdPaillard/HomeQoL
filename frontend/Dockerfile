@@ -9,7 +9,7 @@ WORKDIR /app
 # Copy lockfile first so Docker cache skips npm install when only source changes.
 # Supports both npm (package-lock.json) and yarn (yarn.lock) — whichever exists.
 COPY package.json ./
-COPY package-lock.json* yarn.lock* ./
+COPY package-lock.json ./
 
 RUN npm ci
 # Copy source
