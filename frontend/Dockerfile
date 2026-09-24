@@ -11,13 +11,7 @@ WORKDIR /app
 COPY package.json ./
 COPY package-lock.json* yarn.lock* ./
 
-RUN \
-  if [ -f yarn.lock ]; then \
-    yarn install --frozen-lockfile; \
-  else \
-    npm ci; \
-  fi
-
+RUN npm ci
 # Copy source
 COPY . .
 
