@@ -1,4 +1,4 @@
-import { CheckCircle2, Circle, Flame, Zap, Wallet, Thermometer, AlertTriangle, TrendingDown, TrendingUp } from 'lucide-react'
+import { CheckCircle2, Circle, Flame, Zap, Wallet, Thermometer, AlertTriangle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { StatCard } from '@/components/layout/StatCard'
@@ -23,7 +23,7 @@ export function TodayPage() {
     const tasks = tasksData?.tasks ?? []
     const habits = (habitsData?.habits ?? []).filter((h: Habit) => h.is_active)
     const doneHabits = habits.filter((h: Habit) => h.completed_today).length
-    const interior = homeData?.latest_temperatures?.find(t => t.source === 'interior')
+    // const interior = homeData?.latest_temperatures?.find(t => t.source === 'interior')
 
     const now = new Date()
     const dateStr = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })

@@ -1,5 +1,4 @@
-import { AlertTriangle, Bell, BellOff, CheckCheck } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
+import { Bell, BellOff, CheckCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useAlerts, useAcknowledgeAlert } from '@/hooks/useApi'

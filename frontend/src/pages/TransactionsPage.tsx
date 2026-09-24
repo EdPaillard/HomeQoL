@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, ArrowDownLeft, ArrowUpRight, Search, Filter } from 'lucide-react'
+import { Plus, ArrowDownLeft, ArrowUpRight, Search } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

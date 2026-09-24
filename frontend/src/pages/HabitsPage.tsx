@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Plus, Flame, Check } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PageHeader } from '@/components/layout/PageHeader'

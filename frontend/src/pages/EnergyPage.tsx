@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Zap, TrendingDown, TrendingUp, ExternalLink } from 'lucide-react'
+import { Zap, ExternalLink } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/layout/PageHeader'

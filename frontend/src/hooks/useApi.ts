@@ -178,7 +178,6 @@ export function useEnergyHistory(from: string, to: string, granularity = "daily"
 
 // ── Media ──────────────────────────────────────────────────────────────────────
 import { mediaApi } from '@/api/client'
-import type { JellyfinItem } from '@/types'
 
 export function useJellyfinUser() {
     return useQuery({

@@ -21,7 +21,7 @@ const PRIORITY_COLOR: Record<number, string> = {
     3: 'text-muted-foreground',
 }
 
-const PRIORITY_LABEL: Record<number, string> = { 1: 'Haute', 2: 'Moyenne', 3: 'Basse' }
+// const PRIORITY_LABEL: Record<number, string> = { 1: 'Haute', 2: 'Moyenne', 3: 'Basse' }
 
 export function TasksPage() {
     const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('todo')
