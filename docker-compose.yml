@@ -27,6 +27,7 @@ volumes:
   lidarr_config:
   grafana_data:
   jellyfin_config:
+  jellyfin_cache:
 
 services:
 
