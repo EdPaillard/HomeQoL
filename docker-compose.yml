@@ -75,6 +75,27 @@ services:
         condition: service_healthy
     profiles: [production]
 
+  # ── Jellyfin ──────────────────────────────────────────────────────────────────
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: homeqol-jellyfin
+    restart: unless-stopped
+    networks: [local]
+    ports:
+      - "8096:8096"
+    environment:
+      TZ: ${TZ:-Europe/Paris}
+    volumes:
+      - jellyfin_config:/config
+      - jellyfin_cache:/cache
+      - media_data:/media:ro    # read-only — Syncthing writes, Jellyfin reads
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8096/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+      
   # ── MQTT broker ───────────────────────────────────────────────────────────────
   # Internal only — not exposed to the internet.
   # tydom2mqtt publishes here, Go gateway subscribes.
