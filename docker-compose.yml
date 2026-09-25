@@ -28,7 +28,6 @@ volumes:
   grafana_data:
   jellyfin_config:
   jellyfin_cache:
-  media_data:
 
 services:
 
@@ -90,7 +89,7 @@ services:
     volumes:
       - jellyfin_config:/config
       - jellyfin_cache:/cache
-      - media_data:/media:ro    # read-only — Syncthing writes, Jellyfin reads
+      - /srv/media:/media:ro    # read-only — Syncthing writes, Jellyfin reads
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://localhost:8096/health"]
       interval: 30s
@@ -128,7 +127,7 @@ services:
     networks: [internal]
     environment:
       TYDOM_MAC:           ${TYDOM_MAC}
-      TYDOM_IP:            mediation.tydom.com   # remote mode from Oracle
+      TYDOM_IP:            ${TYDOM_IP} # mediation.tydom.com - remote mode from Oracle
       DELTADORE_LOGIN:     ${DELTADORE_LOGIN}
       DELTADORE_PASSWORD:  ${DELTADORE_PASSWORD}
       MQTT_HOST:           mosquitto
@@ -158,7 +157,7 @@ services:
       PASS: ${TRANSMISSION_PASSWORD:-changeme}
     volumes:
       - transmission_config:/config
-      - transmission_downloads:/downloads
+      - /srv/media:/media
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://localhost:9091/transmission/web/"]
       interval: 30s
@@ -195,7 +194,7 @@ services:
       TZ:   ${TZ:-Europe/Paris}
     volumes:
       - radarr_config:/config
-      - transmission_downloads:/downloads
+      - /srv/media:/media
 
   # ── Sonarr (TV shows) ─────────────────────────────────────────────────────────
   sonarr:
@@ -211,7 +210,7 @@ services:
       TZ:   ${TZ:-Europe/Paris}
     volumes:
       - sonarr_config:/config
-      - transmission_downloads:/downloads
+      - /srv/media:/media
 
   # ── Lidarr (music) ────────────────────────────────────────────────────────────
   lidarr:
@@ -227,7 +226,7 @@ services:
       TZ:   ${TZ:-Europe/Paris}
     volumes:
       - lidarr_config:/config
-      - transmission_downloads:/downloads
+      - /srv/media:/media
 
   # ── Grafana ───────────────────────────────────────────────────────────────────
   # Deep-dive dashboards. Plugin frser-sqlite-datasource reads SQLite directly.
