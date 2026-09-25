@@ -28,6 +28,7 @@ volumes:
   grafana_data:
   jellyfin_config:
   jellyfin_cache:
+  media_data:
 
 services:
 
