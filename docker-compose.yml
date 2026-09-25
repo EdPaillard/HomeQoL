@@ -26,6 +26,7 @@ volumes:
   sonarr_config:
   lidarr_config:
   grafana_data:
+  jellyfin_config:
 
 services:
 
