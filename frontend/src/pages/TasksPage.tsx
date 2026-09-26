@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Circle, CheckCircle2, Trash2, Flag, Clock, ChevronDown, Tag, Calendar } from 'lucide-react'
+import { Plus, Circle, CheckCircle2, Trash2, Flag, Clock, ChevronDown, Calendar } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask } from '@/hooks/useApi'
 import { cn } from '@/lib/utils'
-import type { Task, TaskStatus, Tag as TagType } from '@/types'
+import type { Task, TaskStatus } from '@/types'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
