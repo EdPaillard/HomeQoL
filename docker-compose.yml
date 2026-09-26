@@ -22,6 +22,7 @@ volumes:
   transmission_config:
   transmission_downloads:
   prowlarr_config:
+  bazarr_config:
   radarr_config:
   sonarr_config:
   lidarr_config:
@@ -89,7 +90,7 @@ services:
     volumes:
       - jellyfin_config:/config
       - jellyfin_cache:/cache
-      - /srv/media:/media:ro    # read-only — Syncthing writes, Jellyfin reads
+      - /srv/media:/media
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://localhost:8096/health"]
       interval: 30s
@@ -179,6 +180,23 @@ services:
       TZ:   ${TZ:-Europe/Paris}
     volumes:
       - prowlarr_config:/config
+
+  # ── Bazarr ──────────────────────────────────────────────────────────────────
+  bazarr:
+    image: linuxserver/bazarr:latest
+    container_name: homeqol-bazarr
+    restart: unless-stopped
+    networks: [internal]
+    ports:
+      - "6767:6767"
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ:   ${TZ:-Europe/Paris}
+    volumes:
+      - bazarr_config:/config
+      - /srv/media:/media
+
 
   # ── Radarr (movies) ───────────────────────────────────────────────────────────
   radarr:
