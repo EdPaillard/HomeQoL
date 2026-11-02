@@ -86,7 +86,8 @@ export function useCreateHabit() {
 export function useUpdateHabit() {
     const qc = useQueryClient()
     return useMutation({
-        mutationFn: habitsApi.update,
+        mutationFn:  ({ id, ...body }: Parameters<typeof habitsApi.update>[1] & { id: string }) =>
+            habitsApi.update(id, body),
         onSuccess: () => qc.invalidateQueries({ queryKey: ["habits"] }),
     })
 }
@@ -94,7 +95,7 @@ export function useUpdateHabit() {
 export function useDeleteHabit() {
     const qc = useQueryClient()
     return useMutation({
-        mutationFn: habitsApi.delete,
+        mutationFn:  (id: string) => habitsApi.delete(id),
         onSuccess: () => qc.invalidateQueries({ queryKey: ["habits"] }),
     })
 }
