@@ -42,7 +42,7 @@ export const tasksApi = {
 export const habitsApi = {
     list: () => req<{ habits: Habit[]; count: number }>("/habits"),
     get: (id: string) => req<Habit>(`/habits/${id}`),
-    create: (body: { title: string; frequency?: string; scheduled_days?: number[]; color?: string; icon?: string }) =>
+    create: (body: { title: string; frequency?: string; scheduled_days?: number[]; target_per_week?: string; color?: string; icon?: string }) =>
         req<Habit>("/habits", { method: "POST", body: JSON.stringify(body) }),
     update: (id: string, body: Partial<Habit>) =>
         req<Habit>(`/habits/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
