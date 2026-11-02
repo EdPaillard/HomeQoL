@@ -28,9 +28,9 @@ export const tasksApi = {
         return req<{ tasks: Task[]; count: number }>(`/tasks${qs}`)
     },
     get: (id: string) => req<Task>(`/tasks/${id}`),
-    create: (body: { title: string; description?: string; priority?: number; scheduled_days?: number[]; goal_id?: string; due_date?: string; tag_ids?: string[] }) =>
+    create: (body: { title: string; description?: string; priority?: number; goal_id?: string; due_date?: string; tag_ids?: string[] }) =>
         req<Task>("/tasks", { method: "POST", body: JSON.stringify(body) }),
-    update: (id: string, body: Partial<{ title: string; description: string; scheduled_days: number[]; status: string; priority: number; due_date: string | null; tag_ids: string[] }>) =>
+    update: (id: string, body: Partial<{ title: string; description: string; status: string; priority: number; due_date: string | null; tag_ids: string[] }>) =>
         req<Task>(`/tasks/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
     complete: (id: string) =>
         req<Task>(`/tasks/${id}/complete`, { method: "POST" }),
@@ -42,7 +42,7 @@ export const tasksApi = {
 export const habitsApi = {
     list: () => req<{ habits: Habit[]; count: number }>("/habits"),
     get: (id: string) => req<Habit>(`/habits/${id}`),
-    create: (body: { title: string; frequency?: string; color?: string; icon?: string }) =>
+    create: (body: { title: string; frequency?: string; scheduled_days?: number[]; color?: string; icon?: string }) =>
         req<Habit>("/habits", { method: "POST", body: JSON.stringify(body) }),
     update: (id: string, body: Partial<Habit>) =>
         req<Habit>(`/habits/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
