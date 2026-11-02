@@ -83,6 +83,22 @@ export function useCreateHabit() {
     })
 }
 
+export function useUpdateHabit() {
+    const qc = useQueryClient()
+    return useMutation({
+        mutationFn: habitsApi.update,
+        onSuccess: () => qc.invalidateQueries({ queryKey: ["habits"] }),
+    })
+}
+
+export function useDeleteHabit() {
+    const qc = useQueryClient()
+    return useMutation({
+        mutationFn: habitsApi.delete,
+        onSuccess: () => qc.invalidateQueries({ queryKey: ["habits"] }),
+    })
+}
+
 // ── Goals ─────────────────────────────────────────────────────────────────────
 export function useGoals() {
     return useQuery({
