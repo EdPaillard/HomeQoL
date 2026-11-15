@@ -91,6 +91,8 @@ services:
       - jellyfin_config:/config
       - jellyfin_cache:/cache
       - /srv/media:/media
+      - /mnt/roseraie-1:/external-1
+      - /mnt/roseraie-2:/external-2
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://localhost:8096/health"]
       interval: 30s
@@ -196,6 +198,8 @@ services:
     volumes:
       - bazarr_config:/config
       - /srv/media:/media
+      - /mnt/roseraie-1:/external-1
+      - /mnt/roseraie-2:/external-2
 
 
   # ── Radarr (movies) ───────────────────────────────────────────────────────────
@@ -213,6 +217,8 @@ services:
     volumes:
       - radarr_config:/config
       - /srv/media:/media
+      - /mnt/roseraie-1:/external-1
+      - /mnt/roseraie-2:/external-2
 
   # ── Sonarr (TV shows) ─────────────────────────────────────────────────────────
   sonarr:
@@ -229,6 +235,8 @@ services:
     volumes:
       - sonarr_config:/config
       - /srv/media:/media
+      - /mnt/roseraie-1:/external-1
+      - /mnt/roseraie-2:/external-2
 
   # ── Lidarr (music) ────────────────────────────────────────────────────────────
   lidarr:
@@ -245,6 +253,8 @@ services:
     volumes:
       - lidarr_config:/config
       - /srv/media:/media
+      - /mnt/roseraie-1:/external-1
+      - /mnt/roseraie-2:/external-2
 
   # ── Grafana ───────────────────────────────────────────────────────────────────
   # Deep-dive dashboards. Plugin frser-sqlite-datasource reads SQLite directly.
